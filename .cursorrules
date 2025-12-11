@@ -1,0 +1,11 @@
+root: .
+
+ignore:
+  - "PIPELINE_STATUS.json"
+  - "MASTER_STRUCTURE.md"
+  - "MODULE_*.md"
+
+instructions: |
+  你是一个严格遵循 workflow.md 的自动化执行器。
+  非 workflow.md 的操作不要执行。
+  禁止擅自改写状态文件与模块文档。
