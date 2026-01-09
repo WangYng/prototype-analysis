@@ -13,13 +13,12 @@
 
 ### ✨ 功能特性
 
-- 🚀 全自动：按序处理原型图，无需人工干预
-- 🧠 模块智能分类：自动判断图片属于哪个模块
-- ✍️ 自动生成文档：结构化 Markdown 文档（组件、逻辑、接口）
-- 🔄 增量更新：已有模块会智能追加内容
-- 🧩 系统结构推导：自动生成模块关系图
-- 💾 断点恢复：pipeline 可以中断并从进度继续
-- 🗂 文件规范统一：支持 Cursor 编辑器的自动化规范管理
+- 🚀 **全自动流水线**：按序处理原型图，利用 Cursor 自动化执行，无需人工干预
+- 🧠 **细粒度模块化 (Sub-module Strategy)**：自动将大型功能区（如商城）拆分为细分模块（如 `Mall_Order`, `Mall_Product`），大幅提升 AI 处理速度并节省 Token
+- ✍️ **增强型文档生成**：自动生成包含“模块概述”和“Mermaid 业务架构图”的结构化 Markdown 文档
+- 🔄 **智能增量更新**：已有模块会自动同步 Mermaid 图表并追加新功能描述，保留核心逻辑
+- 🧩 **系统结构汇总**：全流程结束后自动产出全局模块依赖关系与数据流总结
+- 💾 **断点恢复机制**：PIPELINE_STATUS 实时记录进度，支持随时中断与续跑
 
 ---
 
@@ -29,117 +28,93 @@
 project-root/
 │
 ├─ README.md
-├─ .cursorrules
-├─ workflow.md
+├─ workflow.md                 ← 主控自动化工作流
 │
-├─ prompts/
-│  ├─ classify_module.md
-│  ├─ generate_new_module.md
-│  ├─ update_existing_module.md
-│  └─ final_review.md
+├─ prompts/                    ← AI 逻辑核心
+│  ├─ classify_module.md       ← 细粒度分类逻辑
+│  ├─ generate_new_module.md   ← 文档生成模板
+│  ├─ update_existing_module.md ← 增量更新逻辑
+│  └─ final_review.md          ← 系统全案总结
 │
-├─ scripts/
-│  └─ init_pipeline_status.js
+├─ scripts/                    ← 辅助脚本
+│  ├─ init_pipeline_status.js
+│  └─ get_next_image.js
 │
-├─ raw_images/
-│  └─ （按序命名的 UI 原型图）
+├─ raw_images/                 ← 输入：原型图序列 (001.png, 002.png...)
 │
-├─ MASTER_STRUCTURE.md         ← 自动生成
-├─ PIPELINE_STATUS.json        ← 自动生成
-└─ MODULE_*.md                 ← 自动生成
+├─ MASTER_STRUCTURE.md         ← 自动生成：项目总览
+├─ PIPELINE_STATUS.json        ← 自动生成：运行进度
+└─ MODULE_*.md                 ← 自动生成：细分模块规格说明书
 ```
+
+---
+
+### 🚀 快速开始
+
+#### 1. 准备环境
+- 安装 [Node.js](https://nodejs.org/) (用于执行初始化脚本)
+- 使用 [Cursor](https://cursor.sh/) 编辑器 (用于驱动 AI 工作流)
+
+#### 2. 准备原型图
+将所有原型图按顺序命名（如 `001.png`, `002.png`...）放入 `raw_images/` 文件夹。
+
+#### 3. 初始化流水线
+在终端运行：
+```bash
+node scripts/init_pipeline_status.js
+```
+
+#### 4. 执行自动化工作流
+在 Cursor 中打开 `workflow.md`，按照文件中的步骤引导 Cursor 自动处理所有图片。
 
 ---
 
 ### ⚙️ 工作原理
 
-系统通过 workflow.md 作为主控流程，驱动自动化执行：
+系统通过 `workflow.md` 作为主控流程，驱动自动化执行：
 
-1. 初始化
-
-- 检查/创建 PIPELINE_STATUS.json
-- 检查/创建 MASTER_STRUCTURE.md
-
-2. 处理每张原型图
-
-- 加载当前图片
-- 使用分类 Prompt 判断模块归属
-- 若是新模块 → 创建模块文档
-- 若模块已存在 → 增量更新
-
-3. 更新流水线状态
-
-- 记录 current_index
-- 添加 processed_images
-- 写回状态文件
-
-4. 全部处理完毕时
-
-- 运行 Final Review
-- 填充主文档的 `模块关系图`
+1. **初始化**：扫描 `raw_images/`，创建任务进度与主文档结构。
+2. **分类与拆分**：使用 AI 视觉能力判断图片归属，对于复杂功能自动采用 `父模块_子功能` 命名法进行细分（解决单文件过大导致的 Token 瓶颈）。
+3. **文档构建/更新**：
+   - 为新模块生成包含 **概览 + Mermaid 图 + 核心细节** 的标准文档。
+   - 为已有模块执行增量更新，同步图表并追加新逻辑。
+4. **状态记录**：每步操作均实时同步至 `PIPELINE_STATUS.json`，支持随时中断。
+5. **最终复核**：全部完成后，梳理模块间的依赖关系与全局业务流。
 
 ---
 
-### 🚀 快速开始
-#### 1. 安装环境
+### 🧩 Prompts 说明
 
-需要 Node.js（用于初始化脚本）
-
-需要 Cursor（用于自动化执行 AI 工作流）
-
-#### 2. 准备 raw_images
-
-将所有按顺序命名的图片放入：
-
-``` bash
-raw_images/
-001.png
-002.png
-003.png
-...
-```
-
-#### 3. 初始化流水线
-
-首次运行时执行：
-
-``` bash
-node scripts/init_pipeline_status.js
-```
-
-#### 4. 在 Cursor 中运行 workflow.md
-
-打开 `workflow.md`，让 Cursor 自动执行整个流程。
+| 文件 | 功能描述 |
+| :--- | :--- |
+| **classify_module.md** | **核心分类器**：负责细粒度拆分，识别并生成格式如 `Parent_Sub` 的模块名。 |
+| **generate_new_module.md** | **文档模板**：定义包含“模块概述”和“Mermaid 架构图”的标准输出规范。 |
+| **update_existing_module.md** | **增量更新**：指导 AI 在不破坏旧内容的前提下更新 Mermaid 图和细节。 |
+| **final_review.md** | **全局汇总**：从全案视角梳理模块间的依赖关系和业务主流程。 |
 
 ---
 
-### 🧩 prompts 文件夹说明
-| 文件                        | 功能         |
-| ------------------------- | ---------- |
-| classify_module.md        | 判断图片属于哪个模块 |
-| generate_new_module.md    | 创建新模块文档    |
-| update_existing_module.md | 增量更新已有模块   |
-| final_review.md           | 生成模块关系图总结  |
+### 🧠 模块文档规范 (MODULE_*.md)
 
-这些 prompt 会用于 Vision AI 推理与文档生成。
+每个模块生成的 Markdown 结构如下：
 
----
+```markdown
+# [ModuleName]
 
-### 🧠 模块文档规范
+## 模块概述
+（简要描述核心功能与系统角色）
 
-每个模块自动生成格式如下：
-
-``` bash
-# ModuleName
+## 业务架构图 (Mermaid)
+（可视化的页面流转或组件关系图）
 
 ## 组件结构
-...
+（按页面分类列出的 UI 元素清单）
 
 ## 业务逻辑
-...
+（详细的交互流程与行为定义）
 
 ## 数据接口
-...
+（输入输出字段、关键事件与状态）
 ```
 
 ---

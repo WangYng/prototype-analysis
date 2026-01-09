@@ -48,11 +48,13 @@ current_index < total_images
 
 ## 1.1 加载当前图片
 
-从 raw_images 中读取：
+通过脚本获取当前图片的完整路径（按文件名排序）：
 
+```bash
+node scripts/get_next_image.js
 ```
-raw_images[current_index]
-```
+
+将脚本输出的路径作为 Vision 输入图片。
 
 ---
 
@@ -87,7 +89,7 @@ MODULE_[target_module].md
 
 ```
 - 模块名
-  - 与前一模块的关系：AI 推断
+  - 模块介绍：AI 推断
 ```
 
 ---
